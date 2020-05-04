@@ -23,6 +23,15 @@ int MinNewRoutes(std::vector<std::string> airports, std::vector<std::pair<std::s
 	Graph graph;
 	BuildGraph(graph, inputData);
 	graph.PrintAdjacencyMap();
+	graph.IsCircularNode("CDG");
+	auto vec = graph.GetAllNodes();
+	for (auto n : graph.GetAllNodes())
+	{
+		std::cout << n->name << ": " << graph.IsCircularNode(n) << std::endl;
+	}
+	
+	
+	
 	return 0;
 }
 
@@ -32,14 +41,14 @@ void RunExample()
 		"BGI", "CDG", "DEL", "DOH", "DSM", "EWR", "EYW", "HND", "ICN", "JFK", "LGA", "LHR", "ORD", "SAN", "SFO", "SIN", "TLV", "BUD"
 	};
 	std::vector<std::pair<std::string, std::string>> routes = {
-		{"DSM","ORD"},{"ORD","BGI"},{"BGI","LGA"},{"SIN","CDG"},{"CDG","SIN"},{"CGD","BUD"},
-		{"DEL","DOH"},{"DEL","CDG"},{"TLV","DEL"},{"EWR","HND"},{"HND","ICN"},{"HND","JFK"},
-		{"JFK","LGA"},{"EYW","LHR"},{"LHR","SFO"},{"SFO","SAN"},{"SFO","DSM"},{"SAN","EYW"}
+		{"DSM","ORD"}, {"ORD","BGI"},{"BGI","LGA"},{"SIN","CDG"},{"CDG","SIN"},{"CDG","BUD"},
+		{"DEL","DOH"}, {"DEL","CDG"},{"TLV","DEL"},{"EWR","HND"},{"HND","ICN"},{"HND","JFK"},
+		{"ICN","JFK"}, {"JFK","LGA"},{"EYW","LHR"},{"LHR","SFO"},{"SFO","SAN"},{"SFO","DSM"},
+		{"SAN","EYW"} 
 	};
 	std::string startingAirport = "LGA";
 	int answer = MinNewRoutes(airports, routes, startingAirport);
 }
-
 int main()
 {
 	RunExample();

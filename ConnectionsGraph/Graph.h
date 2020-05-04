@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <cassert>
+#include <queue>
 
 class Graph
 {
@@ -39,7 +40,7 @@ public:
 	}
 	void AddEdge(std::string n1, std::string n2, int cost)
 	{
-		assert(nodemap.find(n1) != nodemap.end() || nodemap.find(n2) != nodemap.end());
+		assert(nodemap.find(n1) != nodemap.end() && nodemap.find(n2) != nodemap.end());
 		if (nodemap.find(n1) == nodemap.end() || nodemap.find(n2) == nodemap.end()) return;
 		Node* node1 = nodemap[n1]; 
 		Node* node2 = nodemap[n2];
@@ -49,7 +50,6 @@ public:
 	}
 	std::vector<Node*> GetAllNodes() const
 	{
-		//std::vector<Node*> vec(nodemap.begin(), nodemap.end());
 		std::vector<Node*> vec;
 		for (auto p : nodemap)
 		{
@@ -68,5 +68,30 @@ public:
 			}
 			std::cout << std::endl;
 		}
+	}
+	bool IsCircularNode(std::string node) 
+	{
+		return IsCircularNode(nodemap[node]);
+	}
+	bool IsCircularNode(Node* node) const
+	{
+		std::queue<Node*> queue;
+		std::set<Node*> visited;
+		queue.push(node);
+		while (!queue.empty())
+		{
+			Node* current = queue.front(); queue.pop();
+			if (visited.find(current) != visited.end() && current == node) return true;
+			visited.insert(current);
+			for (auto e : current->edges)
+			{
+				if (e->end == node || visited.find(e->end) == visited.end()) // only  add if not visited earlier (node under investigation gets readded)
+				//if (visited.find(e->end) == visited.end()) // only  add if not visited earlier 
+				{
+					queue.push(e->end);
+				}
+			}
+		}
+		return false;
 	}
 };
