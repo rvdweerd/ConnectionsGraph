@@ -22,17 +22,47 @@ int MinNewRoutes(std::vector<std::string> airports, std::vector<std::pair<std::s
 	InputData inputData({ airports, routes, startingAirport });
 	Graph graph;
 	BuildGraph(graph, inputData);
+	std::cout << "Adjacency List before wrapping circuits" << std::endl;
 	graph.PrintAdjacencyMap();
-	graph.IsCircularNode("CDG");
-	auto vec = graph.GetAllNodes();
+
+	// build list of all nodes that are part of a circuit
+	std::set<Graph::Node*> circulars;
 	for (auto n : graph.GetAllNodes())
 	{
-		std::cout << n->name << ": " << graph.IsCircularNode(n) << std::endl;
+		if (graph.IsCircularNode(n))
+		{
+			circulars.insert(n);
+		}
 	}
-	
-	
-	
-	return 0;
+	// wrap all circular nodes into 1
+	std::cout << "Wrapping nodes that are part of a circuit: ";
+	for (auto n : circulars)
+	{
+		Graph::Node* neighbor = nullptr;
+		for (auto e : n->edges)
+		{
+			if (circulars.find(e->end) != circulars.end())
+			{
+				neighbor = e->end;
+				break;
+			}
+		}
+		std::cout << n->name <<", ";
+		graph.WrapCircularNodeInto(n,neighbor);
+	}
+	std::cout << "\nAdjacency List before wrapping circuits" << std::endl;
+	graph.PrintAdjacencyMap();
+
+	// Count all nodes that have no incoming && are not the startingAirport
+	int count = 0;
+	for (auto n : graph.nodemap)
+	{
+		if (n.second->CountIncoming() == 0 && n.first != startingAirport)
+		{
+			count++;
+		}
+	}
+	return count;
 }
 
 void RunExample()

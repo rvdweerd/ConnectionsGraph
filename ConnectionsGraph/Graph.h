@@ -9,6 +9,7 @@
 
 class Graph
 {
+public:
 	struct Edge;
 	struct Node
 	{
@@ -16,8 +17,21 @@ class Graph
 			:
 			name(n)
 		{}
+		bool PointsTo(Node* target)
+		{
+			for (auto e : edges)
+			{
+				if (e->end == target) return true;
+			}
+			return false;
+		}
+		int CountIncoming()
+		{
+			return incoming.size();
+		}
 		std::string name;
 		std::set<Edge*> edges;
+		std::set<Edge*> incoming;
 	};
 	struct Edge
 	{
@@ -46,6 +60,7 @@ public:
 		Node* node2 = nodemap[n2];
 		Edge* e = new Edge(node1, node2, cost);
 		node1->edges.insert(e);
+		node2->incoming.insert(e);
 		edgelist.insert(e);
 	}
 	std::vector<Node*> GetAllNodes() const
@@ -93,5 +108,68 @@ public:
 			}
 		}
 		return false;
+	}
+	void WrapCircularNodeInto(Node* source, Node* target)
+	{
+		if (target == nullptr) return;
+		std::set<Edge*> toBeDeleted;
+		for (auto e : source->edges) // rebase all edges originating from source to originating from target
+		{
+			if (e->end == target) // this edge points to target
+			{
+				toBeDeleted.insert(e);
+				//delete edge from source (or do nothing and delete outside loop)
+				// update edgelist
+			}
+			else if (target->PointsTo(e->end)) // target already has this destination
+			{
+				toBeDeleted.insert(e);
+				// delete edge from source
+				// update edgelist
+			}
+			else
+			{
+				e->start = target;
+				target->edges.insert(e);
+				//source->edges.erase(e);
+				// move edge to target
+				// update edgelist
+			}
+		}
+		for (auto e : source->incoming) // redirect all edges pointing to source towards target
+		{
+			if (e->start == target) //if e comes from target
+			{
+				toBeDeleted.insert(e);
+				// delete edge (from target and nodelist)
+				// update edgelist
+			}
+			else if (e->start->PointsTo(target)) //  target already has this incoming
+			{
+				toBeDeleted.insert(e);
+				//  delete edge from incoming
+				// update edgelist
+			}
+			else
+			{
+				e->end = target;
+				target->incoming.insert(e);
+				//source->incoming.erase(e);
+				// move incoming to point to target
+				// update edgelist
+			}
+		}
+		// process delete queue
+		for (auto e : toBeDeleted)
+		{
+			e->start->edges.erase(e);
+			e->end->incoming.erase(e);
+			edgelist.erase(e);
+			delete e; e = nullptr;
+		}
+
+		// delete source node
+		nodemap.erase(source->name);
+		delete source; source = nullptr;
 	}
 };
